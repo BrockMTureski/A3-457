@@ -1,0 +1,68 @@
+CISC/CMPE 457 Assignment 3
+
+Due Friday March 17 at noon
+
+In this assignment you take an image, build its sinogram, then filter
+the sinogram, then reconstruct the image using the filtered
+backprojection algorithm.
+
+1. Get the main.py code running.  You run it as
+
+      python3 main.py <image>
+
+   using one of the images in the 'images' directory.
+
+   Press 's' to compute the sinogram from the image.
+   Press 'b' to compute the backprojection from the sinogram.
+   Press 'f' to compute the filtered sinogram.
+
+   You can run the code non-interactively as
+
+      python3 main.py <image> sino.png bp.png sinoFiltered.png bpFiltered.png
+
+   to get the output as the four files named above.  You can provide
+   your own filenames instead.
+
+2. Implement the three functions
+
+      buildSinogram()
+      computeFilteredSinogram()
+      computeBackprojection()
+
+   according to the comments above those functions in main.py.
+
+3. Use the non-interactive command above to get an image of the foot
+   backprojection with numSinoAngles = 64.  Name that image 'footBP.png'.
+
+4. Answer these questions:
+
+      Q1. What is a good 'numSinoAngles' for filtered backprojections,
+          after which point adding more angles does not perceptibly
+          improve image quality?
+
+      Q2. Why does the backprojected image have a circle around
+          everything?
+
+   Put your answers in your README.txt file.
+
+To submit:
+
+   In a single directory called 'a3' put the following THREE files:
+
+      README.txt - containing the name, student number, and netID of
+		   each person working on the assignment.  Include
+		   here any comments you have for the TA.  Include
+		   your answers to the questions in step 4 above.
+
+      main.py    - the modified code, well organized and well commented.
+
+      footBP.png - the backprojection image of the foot from Step 3 above.
+
+   YOU WILL LOSE 1 MARK IF YOU INCLUDE ANY OTHER FILES OR NAME YOUR
+   DIRECTORY SOMETHING OTHER THAN a3.  In particular, do NOT include
+   the 'images' directory, and do NOT include any OSX-specific
+   directories (e.g. '__MACOSX').  If you are using OSX, you WILL NOT
+   SEE __MACOSX, but it will be there and you will lose a mark.  Check
+   your archive on a non-OSX system before submitting it.
+
+   Zip that a3 directory and submit it through OnQ.
