@@ -52,11 +52,12 @@ imageFilename = ""
 def buildSinogram( image, sinoRows ):
 
     dim = image.shape[0] # image is square: dim x dim
-    
     sino = np.empty( (sinoRows,dim) )
 
     for i in range (sinoRows):
-       sino[i] = np.sum(ndimage.rotate(image,-i))
+        rotation = ndimage.rotate(image,-i*180/sinoRows,reshape=False)
+        for x in range(dim):
+            sino[i,x] = np.sum(rotation[:,x])
     return sino
 
 
@@ -77,13 +78,30 @@ def buildSinogram( image, sinoRows ):
 # Return only the real part of the filtered sinogram (i.e. not the
 # complex part).
 
+def freq(len):
+    v = 1/len
+    results = np.empty(len)
+    N = (len-1)//2+1
+    p1 = np.empty(N)
+    p2 = np.empty((len//2))
+    for i in range(N):
+        p1[i] = i
+    for i in range(-(len//2), 0):
+        p2[i] = i
+    results[:N] = p1
+    results[N:] = p2
+    return results*v
+   
 
 def computeFilteredSinogram( sino ):
 
-    # YOUR CODE HERE
+    sinoFiltered = np.zeros(sino.shape)
 
-    sinoFiltered = sino  # DELETE THIS LINE
-    
+    for i in range(sino.shape[0]):
+       x = np.fft.fft(sino[i,:])
+       y = x*abs(freq(len(sino[i,:])))
+       sinoFiltered[i,:] = np.real(np.fft.ifft(y))
+
     return sinoFiltered
 
 
@@ -97,16 +115,27 @@ def computeFilteredSinogram( sino ):
 #
 # Scale the backprojection correctly.
 
+def rep(arr):
+    dim = arr.shape[0]
+    out = np.zeros((dim,dim),dtype=np.float64)
+    for i in range(dim):
+        out[i] = arr
+    return out
+
 
 def computeBackprojection( sinogram ):
-
+    
     sinoRows = sinogram.shape[0]
-
+    
     dim = sinogram.shape[1] # final image is dim x dim
     
     image = np.zeros( (dim,dim), dtype=np.float64 )
+    dtheta = 180.0/sinoRows
 
-    # YOUR CODE HERE
+    for i in range(sinoRows):
+        temp = rep(sinogram[i])
+        temp = ndimage.rotate(temp,dtheta*i,reshape=False)
+        image = image+temp
 
     return image
 
