@@ -54,8 +54,13 @@ def buildSinogram( image, sinoRows ):
     dim = image.shape[0] # image is square: dim x dim
     sino = np.empty( (sinoRows,dim) )
 
+    #iterate through rows of sinogram
     for i in range (sinoRows):
+        #rotate image from 0 through -180 degrees with varying step size depending on 
+        #number of rows in sinogram
         rotation = ndimage.rotate(image,-i*180/sinoRows,reshape=False)
+        #iterate through rotated image columns and sum each one storing each as 
+        #sinogram data point
         for x in range(dim):
             sino[i,x] = np.sum(rotation[:,x])
     return sino
@@ -79,27 +84,38 @@ def buildSinogram( image, sinoRows ):
 # complex part).
 
 def freq(len):
-    v = 1/len
+    """function for calculating frequency based on length of signal,
+    this is a helper function made for computing filtered sinogram."""
+    #prepare output array and get size ranges for for loops
     results = np.empty(len)
-    N = (len-1)//2+1
-    p1 = np.empty(N)
-    p2 = np.empty((len//2))
-    for i in range(N):
-        p1[i] = i
+    halfsize = (len-1)//2+1
+    #initialize front and back half of output
+    start = np.empty(halfsize)
+    end = np.empty((len//2))
+    #fill front and backhalf arrays in positive and negative range
+    for i in range(halfsize):
+        start[i] = i
     for i in range(-(len//2), 0):
-        p2[i] = i
-    results[:N] = p1
-    results[N:] = p2
-    return results*v
+        end[i] = i
+    #place front and back half arrays into output array
+    results[:halfsize] = start
+    results[halfsize:] = end
+    #divide by output array by length and output
+    return results/len
    
 
 def computeFilteredSinogram( sino ):
 
     sinoFiltered = np.zeros(sino.shape)
-
+    #iterate from 0 to number of sinogram rows
     for i in range(sino.shape[0]):
+       #perform fourier transform on sinogram row
        x = np.fft.fft(sino[i,:])
+       #take fft frequency for sinogram row and apply ram-lak filter to it by taking absolute value
+       #then multiply that by fft of sinogram row to apply filter
        y = x*abs(freq(len(sino[i,:])))
+       #take inverse fft of the above filtered sinogram row, remove imaginary part and store in filtered
+       #sinogram matrix
        sinoFiltered[i,:] = np.real(np.fft.ifft(y))
 
     return sinoFiltered
@@ -115,9 +131,14 @@ def computeFilteredSinogram( sino ):
 #
 # Scale the backprojection correctly.
 
-def rep(arr):
+def stretch(arr):
+    """This function takes a 1d array and turns it into a square matrix with each
+    row being filled with same values. Created to help with computing back projection."""
+    #take length of input array
     dim = arr.shape[0]
+    #create matrix of dim x dim shape
     out = np.zeros((dim,dim),dtype=np.float64)
+    #go through and fill matrix with rows of input array
     for i in range(dim):
         out[i] = arr
     return out
@@ -130,11 +151,16 @@ def computeBackprojection( sinogram ):
     dim = sinogram.shape[1] # final image is dim x dim
     
     image = np.zeros( (dim,dim), dtype=np.float64 )
-    dtheta = 180.0/sinoRows
-
+    #calculate step size for rotation
+    stepSize = 180.0/sinoRows
+    #iterate through each sinogram row
     for i in range(sinoRows):
-        temp = rep(sinogram[i])
-        temp = ndimage.rotate(temp,dtheta*i,reshape=False)
+        #strech sinogram row so that it is dim x dim with identical rows
+        temp = stretch(sinogram[i])
+        #rotate image by iterator value multiplied by step size. 
+        #don't reshape as this will mess up values
+        temp = ndimage.rotate(temp,stepSize*i,reshape=False)
+        #add stretched sinogram streak to output image.
         image = image+temp
 
     return image
